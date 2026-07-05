@@ -21,6 +21,19 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.json({ limit: '5mb' }));
 
+// CORS: фронтенд живёт на GitHub Pages, API — здесь (Railway)
+const ALLOWED_ORIGINS = ['https://warpcodelooping.github.io'];
+app.use((req, res, next) => {
+  const origin = req.get('Origin');
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, X-Telegram-Init-Data, X-Dev-User-Id');
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 const PORT = process.env.PORT || 8080;
 
 // ── Публичные справочники ─────────────────────────────────────

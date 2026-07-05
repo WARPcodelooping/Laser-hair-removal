@@ -5,6 +5,10 @@
  */
 import type { ApiResponse } from '../types';
 
+// Адрес бэкенда. Пустой = тот же домен (Railway-деплой целиком).
+// Для фронтенда на GitHub Pages задаётся при сборке: VITE_API_BASE=https://…up.railway.app
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 function authHeaders(): Record<string, string> {
   const initData = window.Telegram?.WebApp?.initData || '';
   const headers: Record<string, string> = {};
@@ -32,7 +36,7 @@ async function parse<T>(res: Response): Promise<ApiResponse<T>> {
 
 export async function apiGet<T>(path: string): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(`/api${path}`, { headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/api${path}`, { headers: authHeaders() });
     return parse<T>(res);
   } catch {
     return { success: false, error: { code: 'NETWORK', message: 'Нет соединения с сервером' } };
@@ -41,7 +45,7 @@ export async function apiGet<T>(path: string): Promise<ApiResponse<T>> {
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(`/api${path}`, {
+    const res = await fetch(`${API_BASE}/api${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify(body ?? {}),
