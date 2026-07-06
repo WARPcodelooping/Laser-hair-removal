@@ -45,8 +45,12 @@ export default function App() {
 
   if (gate === 'loading') {
     return (
-      <div className="flex min-h-dvh items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-soft border-t-accent" />
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4">
+        <div className="relative flex h-14 w-14 items-center justify-center">
+          <span className="absolute inset-0 animate-spin rounded-full border-2 border-soft border-t-accent" />
+          <span className="font-display text-xl font-bold italic text-accent">L</span>
+        </div>
+        <p className="text-xs font-medium tracking-wide text-muted">Загружаем…</p>
       </div>
     );
   }

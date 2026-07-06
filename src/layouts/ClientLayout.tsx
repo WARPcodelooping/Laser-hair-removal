@@ -1,5 +1,5 @@
 /**
- * ClientLayout — обёртка с нижней навигацией (Главная / Услуги / Профиль).
+ * ClientLayout — обёртка с парящей нижней навигацией (Главная / Услуги / Профиль).
  */
 import { Outlet, NavLink } from 'react-router-dom';
 
@@ -30,24 +30,26 @@ const tabs = [
 export default function ClientLayout() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <main className="mx-auto w-full max-w-md flex-1 pb-24">
+      <main className="mx-auto w-full max-w-md flex-1 pb-32">
         <Outlet />
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 border-t border-soft bg-card pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto flex max-w-md">
+      <nav className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[max(env(safe-area-inset-bottom),16px)]">
+        <div className="mx-auto flex max-w-md rounded-[26px] border border-white/80 bg-white/85 p-1.5 shadow-dock backdrop-blur-xl">
           {tabs.map((t) => (
             <NavLink
               key={t.to}
               to={t.to}
               end={t.to === '/'}
               className={({ isActive }) =>
-                `flex flex-1 flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition ${
-                  isActive ? 'text-accent' : 'text-muted'
+                `flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] text-[11px] font-head font-semibold transition-all duration-200 ${
+                  isActive
+                    ? 'bg-gradient-to-b from-softer to-soft/40 text-accent'
+                    : 'text-muted active:scale-95'
                 }`
               }
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
+              <svg className="h-[22px] w-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
                 {t.icon}
               </svg>
               {t.label}
