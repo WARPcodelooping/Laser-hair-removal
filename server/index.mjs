@@ -15,7 +15,7 @@ if (!process.env.DATABASE_URL) {
 }
 import { auth, requireAdmin, isAdmin, ADMIN_IDS, ok, fail, newId, escapeHtml, fmtDate } from './lib.mjs';
 import { sendMessage, sendWelcome, setWebhook, WEBHOOK_SECRET, hasBotToken } from './telegram.mjs';
-import { STUDIOS, CATEGORIES, loyaltyForVisits } from '../shared/domain.js';
+import { STUDIOS, loyaltyForVisits } from '../shared/domain.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -37,8 +37,8 @@ app.use((req, res, next) => {
 const PORT = process.env.PORT || 8080;
 
 // ── Публичные справочники ─────────────────────────────────────
-app.get('/api/config', (_req, res) =>
-  ok(res, { studios: STUDIOS, categories: CATEGORIES })
+app.get('/api/config', async (_req, res) =>
+  ok(res, { studios: STUDIOS, categories: await db.getCategories() })
 );
 
 // ── Профиль клиента ───────────────────────────────────────────
@@ -206,8 +206,64 @@ app.get('/api/admin/services', auth, requireAdmin, async (_req, res) => {
   ok(res, await db.getServices({ all: true }));
 });
 
+app.post('/api/admin/services', auth, requireAdmin, async (req, res) => {
+  const { name, category, grp, note, price, price_max, duration } = req.body || {};
+  const p = Number(price);
+  if (!name || !String(name).trim() || !category || !Number.isFinite(p) || p <= 0) {
+    return fail(res, 'BAD_REQUEST', 'Название, категория и цена обязательны');
+  }
+  ok(
+    res,
+    await db.createService({
+      name: String(name).trim(),
+      category,
+      grp: grp ? String(grp).trim() : null,
+      note: note ? String(note).trim() : null,
+      price: Math.round(p),
+      price_max: Number(price_max) > 0 ? Math.round(Number(price_max)) : null,
+      duration: Number(duration) > 0 ? Math.round(Number(duration)) : 30,
+    })
+  );
+});
+
 app.post('/api/admin/services/:id', auth, requireAdmin, async (req, res) => {
   await db.updateService(req.params.id, req.body || {});
+  ok(res, { updated: true });
+});
+
+// ── Админка: категории (фильтры услуг) ────────────────────────
+app.get('/api/admin/categories', auth, requireAdmin, async (_req, res) => {
+  ok(res, await db.getCategories({ all: true }));
+});
+
+app.post('/api/admin/categories', auth, requireAdmin, async (req, res) => {
+  const { name } = req.body || {};
+  if (!name || !String(name).trim()) return fail(res, 'BAD_REQUEST', 'Название обязательно');
+  ok(res, await db.createCategory({ name: String(name).trim() }));
+});
+
+app.post('/api/admin/categories/reorder', auth, requireAdmin, async (req, res) => {
+  const { ids } = req.body || {};
+  if (!Array.isArray(ids)) return fail(res, 'BAD_REQUEST', 'ids обязателен');
+  await db.reorderCategories(ids);
+  ok(res, { updated: true });
+});
+
+app.post('/api/admin/categories/:id/delete', auth, requireAdmin, async (req, res) => {
+  const done = await db.deleteCategory(req.params.id);
+  if (!done) return fail(res, 'NOT_EMPTY', 'Сначала перенесите или удалите услуги из этого фильтра');
+  ok(res, { deleted: true });
+});
+
+app.post('/api/admin/categories/:id', auth, requireAdmin, async (req, res) => {
+  const { name, active } = req.body || {};
+  const fields = {};
+  if (name !== undefined) {
+    if (!String(name).trim()) return fail(res, 'BAD_REQUEST', 'Название не может быть пустым');
+    fields.name = String(name).trim();
+  }
+  if (active !== undefined) fields.active = !!active;
+  await db.updateCategory(req.params.id, fields);
   ok(res, { updated: true });
 });
 

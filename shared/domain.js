@@ -120,31 +120,31 @@ export const SERVICES = [
   { id: 'cosm-liquid-laser', category: 'cosmetology', group: 'Инъекции', name: 'Жидкий лазер', price: 7000, duration: 45 },
 
   // ── Интимная косметология
-  { id: 'intim-peel', category: 'intimate', group: null, name: 'Пилинг интимной зоны', price: 3000, priceMax: 10000, duration: 45 },
-  { id: 'intim-peel-course', category: 'intimate', group: null, name: 'Курс пилинга (3–5 процедур)', price: 7000, priceMax: 40000, duration: 45 },
-  { id: 'intim-biorevit', category: 'intimate', group: null, name: 'Биоревитализация интимной зоны', price: 8000, priceMax: 20000, duration: 45 },
+  { id: 'intim-peel', category: 'intimate', group: 'Пилинги', name: 'Пилинг интимной зоны', price: 3000, priceMax: 10000, duration: 45 },
+  { id: 'intim-peel-course', category: 'intimate', group: 'Пилинги', name: 'Курс пилинга (3–5 процедур)', price: 7000, priceMax: 40000, duration: 45 },
+  { id: 'intim-biorevit', category: 'intimate', group: 'Инъекции', name: 'Биоревитализация интимной зоны', price: 8000, priceMax: 20000, duration: 45 },
 
   // ── Массаж лица и тела
-  { id: 'mass-classic', category: 'massage', group: null, name: 'Классический массаж тела', price: 2600, duration: 70 },
-  { id: 'mass-full', category: 'massage', group: null, name: 'Массаж под ключ всего тела и лица', price: 4200, duration: 120 },
-  { id: 'mass-back-neck', category: 'massage', group: null, name: 'Массаж спины и шейно-воротниковой зоны', price: 1800, duration: 30 },
-  { id: 'mass-deep', category: 'massage', group: null, name: 'Глубокотканный массаж шеи, лица и головы', price: 3100, duration: 90 },
-  { id: 'mass-care-face', category: 'massage', group: null, name: 'Уходовый комплекс для лица с массажем', price: 2000, duration: 90 },
-  { id: 'mass-buccal', category: 'massage', group: null, name: 'Буккальный массаж лица', price: 3100, duration: 90 },
-  { id: 'mass-japan', category: 'massage', group: null, name: '«Японская фейс-практика»', price: 3000, duration: 60 },
-  { id: 'mass-thai', category: 'massage', group: null, name: '«Тайское наслаждение»', price: 3000, duration: 90 },
-  { id: 'mass-lymph', category: 'massage', group: null, name: 'Лимфодренажный массаж тела', price: 2400, duration: 70 },
-  { id: 'mass-lymphdrive', category: 'massage', group: null, name: '«Лимфодрайв»', price: 2600, duration: 70 },
+  { id: 'mass-classic', category: 'massage', group: 'Массаж тела', name: 'Классический массаж тела', price: 2600, duration: 70 },
+  { id: 'mass-full', category: 'massage', group: 'Комплексы', name: 'Массаж под ключ всего тела и лица', price: 4200, duration: 120 },
+  { id: 'mass-back-neck', category: 'massage', group: 'Массаж тела', name: 'Массаж спины и шейно-воротниковой зоны', price: 1800, duration: 30 },
+  { id: 'mass-deep', category: 'massage', group: 'Массаж лица', name: 'Глубокотканный массаж шеи, лица и головы', price: 3100, duration: 90 },
+  { id: 'mass-care-face', category: 'massage', group: 'Массаж лица', name: 'Уходовый комплекс для лица с массажем', price: 2000, duration: 90 },
+  { id: 'mass-buccal', category: 'massage', group: 'Массаж лица', name: 'Буккальный массаж лица', price: 3100, duration: 90 },
+  { id: 'mass-japan', category: 'massage', group: 'Массаж лица', name: '«Японская фейс-практика»', price: 3000, duration: 60 },
+  { id: 'mass-thai', category: 'massage', group: 'Массаж тела', name: '«Тайское наслаждение»', price: 3000, duration: 90 },
+  { id: 'mass-lymph', category: 'massage', group: 'Массаж тела', name: 'Лимфодренажный массаж тела', price: 2400, duration: 70 },
+  { id: 'mass-lymphdrive', category: 'massage', group: 'Массаж тела', name: '«Лимфодрайв»', price: 2600, duration: 70 },
 
   // ── Ботулинотерапия
-  { id: 'botox-brows', category: 'botox', group: null, name: 'Межбровье (морщины гнева)', price: 5000, priceFrom: true, duration: 30 },
-  { id: 'botox-eyes', category: 'botox', group: null, name: 'Окологлазничная область (гусиные лапки)', price: 5000, priceFrom: true, duration: 30 },
-  { id: 'botox-nose', category: 'botox', group: null, name: 'Крылья носа (морщины кролика)', price: 4000, priceFrom: true, duration: 30 },
-  { id: 'botox-browlift', category: 'botox', group: null, name: 'Бровный лифтинг', price: 5000, priceFrom: true, duration: 30 },
-  { id: 'botox-hyperhidrosis', category: 'botox', group: null, name: 'Лечение гипергидроза (подмышки, ладони, стопы)', price: 15000, priceFrom: true, duration: 45 },
-  { id: 'botox-fullface', category: 'botox', group: null, name: 'Full Face', price: 15000, priceFrom: true, duration: 60 },
-  { id: 'botox-platysma', category: 'botox', group: null, name: 'Платизма', price: 7000, priceFrom: true, duration: 40 },
-  { id: 'botox-forehead-brows', category: 'botox', group: null, name: 'Лоб + межбровье', price: 8000, priceFrom: true, duration: 40 },
+  { id: 'botox-brows', category: 'botox', group: 'Коррекция морщин', name: 'Межбровье (морщины гнева)', price: 5000, priceFrom: true, duration: 30 },
+  { id: 'botox-eyes', category: 'botox', group: 'Коррекция морщин', name: 'Окологлазничная область (гусиные лапки)', price: 5000, priceFrom: true, duration: 30 },
+  { id: 'botox-nose', category: 'botox', group: 'Коррекция морщин', name: 'Крылья носа (морщины кролика)', price: 4000, priceFrom: true, duration: 30 },
+  { id: 'botox-browlift', category: 'botox', group: 'Коррекция морщин', name: 'Бровный лифтинг', price: 5000, priceFrom: true, duration: 30 },
+  { id: 'botox-hyperhidrosis', category: 'botox', group: 'Лечение гипергидроза', name: 'Лечение гипергидроза (подмышки, ладони, стопы)', price: 15000, priceFrom: true, duration: 45 },
+  { id: 'botox-fullface', category: 'botox', group: 'Комплексы', name: 'Full Face', price: 15000, priceFrom: true, duration: 60 },
+  { id: 'botox-platysma', category: 'botox', group: 'Коррекция морщин', name: 'Платизма', price: 7000, priceFrom: true, duration: 40 },
+  { id: 'botox-forehead-brows', category: 'botox', group: 'Комплексы', name: 'Лоб + межбровье', price: 8000, priceFrom: true, duration: 40 },
 ];
 
 // ── Накопительная лояльность ──────────────────────────────────

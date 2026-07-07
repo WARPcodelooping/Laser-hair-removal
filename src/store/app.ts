@@ -3,7 +3,7 @@
  * Глобальное состояние: профиль, город/студия, флоу записи.
  */
 import { create } from 'zustand';
-import type { Client, Loyalty, Service, Master } from '../types';
+import type { Client, Loyalty, Service, Master, Category } from '../types';
 
 interface AppState {
   // Профиль
@@ -12,6 +12,10 @@ interface AppState {
   isAdmin: boolean;
   loaded: boolean;
   setMe: (c: Client, l: Loyalty, admin: boolean) => void;
+
+  // Справочники (категории услуг — динамические, из БД)
+  categories: Category[];
+  setCategories: (c: Category[]) => void;
 
   // Флоу записи
   service: Service | null;
@@ -27,6 +31,9 @@ export const useApp = create<AppState>((set) => ({
   isAdmin: false,
   loaded: false,
   setMe: (client, loyalty, isAdmin) => set({ client, loyalty, isAdmin, loaded: true }),
+
+  categories: [],
+  setCategories: (categories) => set({ categories }),
 
   service: null,
   master: null,

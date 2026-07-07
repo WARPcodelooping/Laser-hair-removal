@@ -5,7 +5,7 @@
  * по датам (master_schedule_dates) — дата всегда приоритетнее шаблона.
  */
 import pg from 'pg';
-import { SERVICES } from '../shared/domain.js';
+import { SERVICES, CATEGORIES } from '../shared/domain.js';
 
 const { Pool } = pg;
 
@@ -90,9 +90,29 @@ export async function initSchema() {
       slots JSONB DEFAULT '[]'::jsonb,
       PRIMARY KEY (master_id, d)
     );
+
+    CREATE TABLE IF NOT EXISTS categories (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      icon TEXT,
+      sort INT DEFAULT 0,
+      active BOOLEAN DEFAULT true
+    );
   `);
 
   await seedServices();
+  await seedCategories();
+}
+
+/** Первичное заполнение категорий из shared/domain.js (только отсутствующие id). */
+async function seedCategories() {
+  for (const [i, c] of CATEGORIES.entries()) {
+    await pool.query(
+      `INSERT INTO categories (id, name, icon, sort) VALUES ($1,$2,$3,$4)
+       ON CONFLICT (id) DO NOTHING`,
+      [c.id, c.name, c.icon || null, i]
+    );
+  }
 }
 
 /** Первичное заполнение услуг из shared/domain.js (только отсутствующие id). */
@@ -104,6 +124,10 @@ async function seedServices() {
        ON CONFLICT (id) DO NOTHING`,
       [s.id, s.category, s.group ?? null, s.name, s.note ?? null, s.price, s.priceMax ?? null, !!s.priceFrom, s.duration]
     );
+    // Миграция: досыпаем группу услугам, у которых её не было (правки админа не трогаем)
+    if (s.group) {
+      await pool.query(`UPDATE services SET grp = $2 WHERE id = $1 AND grp IS NULL`, [s.id, s.group]);
+    }
   }
 }
 
@@ -196,6 +220,52 @@ export async function updateMaster(id, fields) {
   await pool.query(`UPDATE masters SET ${sets.join(', ')} WHERE id = $1`, vals);
 }
 
+// ── Категории (фильтры услуг) ─────────────────────────────────
+export async function getCategories({ all = false } = {}) {
+  const where = all ? '' : `WHERE active = true`;
+  const { rows } = await pool.query(`SELECT * FROM categories ${where} ORDER BY sort, name`);
+  return rows;
+}
+
+export async function createCategory({ name, icon }) {
+  const id = 'cat-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const { rows } = await pool.query(
+    `INSERT INTO categories (id, name, icon, sort)
+     VALUES ($1, $2, $3, COALESCE((SELECT MAX(sort) + 1 FROM categories), 0))
+     RETURNING *`,
+    [id, name, icon || null]
+  );
+  return rows[0];
+}
+
+export async function updateCategory(id, fields) {
+  const allowed = ['name', 'icon', 'sort', 'active'];
+  const sets = [];
+  const vals = [id];
+  for (const k of allowed) {
+    if (fields[k] !== undefined) {
+      vals.push(fields[k]);
+      sets.push(`${k} = $${vals.length}`);
+    }
+  }
+  if (!sets.length) return;
+  await pool.query(`UPDATE categories SET ${sets.join(', ')} WHERE id = $1`, vals);
+}
+
+export async function reorderCategories(ids) {
+  for (const [i, id] of ids.entries()) {
+    await pool.query(`UPDATE categories SET sort = $2 WHERE id = $1`, [id, i]);
+  }
+}
+
+/** Удаляет категорию; false — если в ней ещё есть услуги. */
+export async function deleteCategory(id) {
+  const { rows } = await pool.query(`SELECT 1 FROM services WHERE category = $1 LIMIT 1`, [id]);
+  if (rows.length) return false;
+  await pool.query(`DELETE FROM categories WHERE id = $1`, [id]);
+  return true;
+}
+
 // ── Услуги ────────────────────────────────────────────────────
 export async function getServices({ all = false } = {}) {
   const where = all ? '' : `WHERE active = true`;
@@ -203,8 +273,18 @@ export async function getServices({ all = false } = {}) {
   return rows;
 }
 
+export async function createService(f) {
+  const id = 'svc-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const { rows } = await pool.query(
+    `INSERT INTO services (id, category, grp, name, note, price, price_max, price_from, duration)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+    [id, f.category, f.grp || null, f.name, f.note || null, f.price, f.price_max || null, !!f.price_from, f.duration || 30]
+  );
+  return rows[0];
+}
+
 export async function updateService(id, fields) {
-  const allowed = ['name', 'note', 'price', 'price_max', 'duration', 'active'];
+  const allowed = ['name', 'note', 'price', 'price_max', 'price_from', 'duration', 'active', 'category', 'grp'];
   const sets = [];
   const vals = [id];
   for (const k of allowed) {

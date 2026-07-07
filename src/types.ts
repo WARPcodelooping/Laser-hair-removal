@@ -13,7 +13,9 @@ export interface Studio {
 export interface Category {
   id: string;
   name: string;
-  icon: string;
+  icon?: string | null;
+  sort?: number;
+  active?: boolean;
 }
 
 export interface Service {

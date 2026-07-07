@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { apiGet } from './api/http';
 import { useApp } from './store/app';
-import type { Client, Loyalty } from './types';
+import type { Category, Client, Loyalty } from './types';
 import Consent from './pages/Consent';
 import CitySelect from './pages/CitySelect';
 import StudioSelect from './pages/StudioSelect';
@@ -21,8 +21,16 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 type Gate = 'loading' | 'consent' | 'city' | 'studio' | 'app';
 
 export default function App() {
-  const { client, setMe, isAdmin } = useApp();
+  const { client, setMe, isAdmin, setCategories } = useApp();
   const [gate, setGate] = useState<Gate>('loading');
+
+  // Справочник категорий (динамический, редактируется в админке)
+  useEffect(() => {
+    apiGet<{ categories: Category[] }>('/config').then((r) => {
+      if (r.success && r.data) setCategories(r.data.categories);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const refresh = async () => {
     const res = await apiGet<{ client: Client; loyalty: Loyalty; isAdmin: boolean }>('/me');

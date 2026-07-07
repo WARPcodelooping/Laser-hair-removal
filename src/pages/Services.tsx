@@ -5,8 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiGet } from '../api/http';
 import { useApp } from '../store/app';
-import { CATEGORIES } from '../../shared/domain.js';
-import type { Service, Category } from '../types';
+import type { Service } from '../types';
 
 const fmtPrice = (s: Service) => {
   const base = s.price.toLocaleString('ru-RU');
@@ -17,15 +16,22 @@ const fmtPrice = (s: Service) => {
 
 export default function Services() {
   const nav = useNavigate();
-  const { setService } = useApp();
+  const { setService, categories } = useApp();
   const [services, setServices] = useState<Service[]>([]);
-  const [cat, setCat] = useState<string>((CATEGORIES as Category[])[0].id);
+  const [cat, setCat] = useState<string>('');
 
   useEffect(() => {
     apiGet<Service[]>('/services').then((r) => {
       if (r.success && r.data) setServices(r.data);
     });
   }, []);
+
+  // Первая категория по умолчанию, когда справочник загрузился
+  useEffect(() => {
+    if (categories.length && !categories.some((c) => c.id === cat)) {
+      setCat(categories[0].id);
+    }
+  }, [categories, cat]);
 
   const inCat = useMemo(() => services.filter((s) => s.category === cat), [services, cat]);
 
@@ -51,9 +57,13 @@ export default function Services() {
         <h1 className="mt-2 font-display text-[32px] font-semibold leading-tight">Услуги</h1>
       </header>
 
+      {/* Фильтры одной строкой с горизонтальной прокруткой */}
       <div className="anim d1 relative mt-5">
-        <div className="no-scrollbar flex gap-2 overflow-x-auto px-5 pb-2 pr-10 [touch-action:pan-x]">
-          {(CATEGORIES as Category[]).map((c) => (
+        <div
+          className="no-scrollbar flex gap-2 overflow-x-auto px-5 pb-2 pr-12"
+          style={{ touchAction: 'pan-x pan-y', overscrollBehaviorX: 'contain', WebkitOverflowScrolling: 'touch' }}
+        >
+          {categories.map((c) => (
             <button
               key={c.id}
               onClick={() => setCat(c.id)}

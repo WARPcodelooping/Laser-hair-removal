@@ -7,7 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SERVICES, STUDIOS } from '../shared/domain.js';
+import { SERVICES, STUDIOS, CATEGORIES } from '../shared/domain.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FILE = path.join(__dirname, 'dev-data.json');
@@ -24,10 +24,14 @@ let data = {
   clients: [],
   masters: [],
   services: [],
+  categories: [], // {id, name, icon, sort, active}
   bookings: [],
   weekly: [], // {master_id, day, working, slots}
   dates: [], // {master_id, d, slots}
 };
+
+const seedCategories = () =>
+  CATEGORIES.map((c, i) => ({ id: c.id, name: c.name, icon: c.icon || null, sort: i, active: true }));
 
 function save() {
   fs.writeFileSync(FILE, JSON.stringify(data, null, 2));
@@ -50,11 +54,28 @@ export async function initSchema() {
   if (fs.existsSync(FILE)) {
     try {
       data = JSON.parse(fs.readFileSync(FILE, 'utf-8'));
+      // Миграция старых dev-данных: категории появились позже
+      if (!Array.isArray(data.categories) || !data.categories.length) {
+        data.categories = seedCategories();
+        save();
+      }
+      // Миграция: досыпаем группы услугам без группы (правки админа не трогаем)
+      let touched = false;
+      for (const seed of SERVICES) {
+        if (!seed.group) continue;
+        const s = data.services.find((x) => x.id === seed.id);
+        if (s && !s.grp) {
+          s.grp = seed.group;
+          touched = true;
+        }
+      }
+      if (touched) save();
       return;
     } catch {
       // повреждён — пересоздаём
     }
   }
+  data.categories = seedCategories();
   // Сид: услуги из домена
   data.services = SERVICES.map((s) => ({
     id: s.id,
@@ -164,15 +185,75 @@ export async function updateMaster(id, fields) {
   save();
 }
 
+// ── Категории (фильтры услуг) ─────────────────────────────────
+export async function getCategories({ all = false } = {}) {
+  return data.categories
+    .filter((c) => all || c.active)
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+}
+
+export async function createCategory({ name, icon }) {
+  const id = 'cat-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const sort = Math.max(-1, ...data.categories.map((c) => c.sort ?? 0)) + 1;
+  const c = { id, name, icon: icon || null, sort, active: true };
+  data.categories.push(c);
+  save();
+  return c;
+}
+
+export async function updateCategory(id, fields) {
+  const c = data.categories.find((x) => x.id === id);
+  if (!c) return;
+  for (const k of ['name', 'icon', 'sort', 'active']) {
+    if (fields[k] !== undefined) c[k] = fields[k];
+  }
+  save();
+}
+
+export async function reorderCategories(ids) {
+  ids.forEach((id, i) => {
+    const c = data.categories.find((x) => x.id === id);
+    if (c) c.sort = i;
+  });
+  save();
+}
+
+/** Удаляет категорию; false — если в ней ещё есть услуги. */
+export async function deleteCategory(id) {
+  if (data.services.some((s) => s.category === id)) return false;
+  data.categories = data.categories.filter((c) => c.id !== id);
+  save();
+  return true;
+}
+
 // ── Услуги ────────────────────────────────────────────────────
 export async function getServices({ all = false } = {}) {
   return data.services.filter((s) => all || s.active);
 }
 
+export async function createService(f) {
+  const id = 'svc-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const s = {
+    id,
+    category: f.category,
+    grp: f.grp || null,
+    name: f.name,
+    note: f.note || null,
+    price: f.price,
+    price_max: f.price_max || null,
+    price_from: !!f.price_from,
+    duration: f.duration || 30,
+    active: true,
+  };
+  data.services.push(s);
+  save();
+  return s;
+}
+
 export async function updateService(id, fields) {
   const s = data.services.find((x) => x.id === id);
   if (!s) return;
-  for (const k of ['name', 'note', 'price', 'price_max', 'duration', 'active']) {
+  for (const k of ['name', 'note', 'price', 'price_max', 'price_from', 'duration', 'active', 'category', 'grp']) {
     if (fields[k] !== undefined) s[k] = fields[k];
   }
   save();
