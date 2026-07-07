@@ -31,6 +31,10 @@ function Collapsible({ title, children, defaultOpen = false }: { title: string; 
 const fmtDate = (d: string) =>
   new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 
+/** Момент записи; время дополняется до HH:MM («9:00» → «09:00»). */
+const bookingAt = (b: Booking) =>
+  new Date(`${b.date_iso}T${String(b.b_time).padStart(5, '0')}`);
+
 export default function Profile() {
   const { client, loyalty } = useApp();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -45,12 +49,8 @@ export default function Profile() {
   }, []);
 
   const now = new Date();
-  const upcoming = bookings.filter(
-    (b) => b.status === 'booked' && new Date(`${b.date_iso}T${b.b_time}`) >= now
-  );
-  const past = bookings.filter(
-    (b) => b.status !== 'booked' || new Date(`${b.date_iso}T${b.b_time}`) < now
-  );
+  const upcoming = bookings.filter((b) => b.status === 'booked' && bookingAt(b) >= now);
+  const past = bookings.filter((b) => b.status !== 'booked' || bookingAt(b) < now);
 
   const cancel = async (id: string) => {
     if (!confirm('Отменить запись?')) return;

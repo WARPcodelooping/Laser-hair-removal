@@ -10,6 +10,10 @@ interface TgUser {
   photo_url?: string;
 }
 
+interface TgRequestContactResponse {
+  responseUnsafe?: { contact?: { phone_number?: string } };
+}
+
 interface TgWebApp {
   ready: () => void;
   expand: () => void;
@@ -19,6 +23,7 @@ interface TgWebApp {
   colorScheme: 'light' | 'dark';
   setHeaderColor?: (color: string) => void;
   setBackgroundColor?: (color: string) => void;
+  requestContact?: (cb: (ok: boolean, resp?: TgRequestContactResponse) => void) => void;
 }
 
 declare global {
@@ -48,4 +53,23 @@ export function closeApp() {
   const tg = getWebApp();
   if (tg) tg.close();
   else window.close();
+}
+
+/**
+ * Запрашивает номер телефона у Telegram (нативный диалог «Поделиться номером»).
+ * Возвращает номер или null (отказ / старый клиент / вне Telegram).
+ */
+export function requestPhone(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const tg = getWebApp();
+    if (!tg?.requestContact) return resolve(null);
+    try {
+      tg.requestContact((ok, resp) => {
+        const phone = resp?.responseUnsafe?.contact?.phone_number || null;
+        resolve(ok && phone ? phone : null);
+      });
+    } catch {
+      resolve(null);
+    }
+  });
 }

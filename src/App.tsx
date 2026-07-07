@@ -59,15 +59,18 @@ export default function App() {
   if (gate === 'city') return <CitySelect onDone={refresh} />;
   if (gate === 'studio') return <StudioSelect city={client?.city ?? ''} onDone={refresh} />;
 
+  // Пока имя и телефон не заполнены — доступна только главная (форма знакомства)
+  const unregistered = !client?.name || !client?.phone;
+
   return (
     <Routes>
       <Route element={<ClientLayout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/services" element={unregistered ? <Navigate to="/" replace /> : <Services />} />
+        <Route path="/profile" element={unregistered ? <Navigate to="/" replace /> : <Profile />} />
       </Route>
-      <Route path="/booking/master" element={<MasterSelect />} />
-      <Route path="/booking/time" element={<TimeSelect />} />
+      <Route path="/booking/master" element={unregistered ? <Navigate to="/" replace /> : <MasterSelect />} />
+      <Route path="/booking/time" element={unregistered ? <Navigate to="/" replace /> : <TimeSelect />} />
       {isAdmin && <Route path="/admin" element={<AdminDashboard />} />}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

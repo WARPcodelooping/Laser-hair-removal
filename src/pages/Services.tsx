@@ -51,16 +51,20 @@ export default function Services() {
         <h1 className="mt-2 font-display text-[32px] font-semibold leading-tight">Услуги</h1>
       </header>
 
-      <div className="anim d1 no-scrollbar mt-5 flex gap-2 overflow-x-auto px-5 pb-2">
-        {(CATEGORIES as Category[]).map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setCat(c.id)}
-            className={`pill ${cat === c.id ? 'pill-active' : 'pill-idle'}`}
-          >
-            {c.name}
-          </button>
-        ))}
+      <div className="anim d1 relative mt-5">
+        <div className="no-scrollbar flex gap-2 overflow-x-auto px-5 pb-2 pr-10 [touch-action:pan-x]">
+          {(CATEGORIES as Category[]).map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setCat(c.id)}
+              className={`pill shrink-0 ${cat === c.id ? 'pill-active' : 'pill-idle'}`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+        {/* подсказка: справа ещё есть категории */}
+        <span className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-bg via-bg/70 to-transparent" />
       </div>
 
       <div className="mt-4 flex flex-col gap-5 px-5">

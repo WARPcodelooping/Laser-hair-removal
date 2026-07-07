@@ -16,6 +16,10 @@ export const pool = new Pool({
 
 const DOW_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
+// Локальная дата YYYY-MM-DD (toISOString сдвигает день на не-UTC машинах)
+const isoLocal = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
 // Активные статусы, занимающие слот
 const ACTIVE = ['booked'];
 
@@ -278,7 +282,7 @@ export async function getOpenDates(masterId, fromIso, toIso) {
   const cur = new Date(fromIso + 'T00:00:00');
   const end = new Date(toIso + 'T00:00:00');
   while (cur <= end) {
-    if (workingDows.has(cur.getDay())) out.push(cur.toISOString().slice(0, 10));
+    if (workingDows.has(cur.getDay())) out.push(isoLocal(cur));
     cur.setDate(cur.getDate() + 1);
   }
   return out;
@@ -327,7 +331,8 @@ export async function isSlotTaken(masterId, date, time) {
 export async function createBooking(b) {
   const { rows } = await pool.query(
     `INSERT INTO bookings (id, client_id, master_id, service_id, studio_id, b_date, b_time, price, discount)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+     RETURNING *, to_char(b_date, 'YYYY-MM-DD') AS date_iso`,
     [b.id, b.client_id, b.master_id, b.service_id, b.studio_id, b.date, b.time, b.price, b.discount]
   );
   return rows[0];

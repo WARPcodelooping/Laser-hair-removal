@@ -13,6 +13,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FILE = path.join(__dirname, 'dev-data.json');
 
 const DOW_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+// Локальная дата YYYY-MM-DD (toISOString сдвигает день на не-UTC машинах)
+const isoLocal = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const ACTIVE = ['booked'];
 const DEFAULT_SLOTS = ['10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
 
@@ -229,7 +233,7 @@ export async function getOpenDates(masterId, fromIso, toIso) {
   const cur = new Date(fromIso + 'T00:00:00');
   const end = new Date(toIso + 'T00:00:00');
   while (cur <= end) {
-    if (workingDows.has(cur.getDay())) out.push(cur.toISOString().slice(0, 10));
+    if (workingDows.has(cur.getDay())) out.push(isoLocal(cur));
     cur.setDate(cur.getDate() + 1);
   }
   return out;

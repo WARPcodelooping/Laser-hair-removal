@@ -1,7 +1,9 @@
 /**
  * ClientLayout — обёртка с парящей нижней навигацией (Главная / Услуги / Профиль).
+ * До заполнения имени и телефона табы «Услуги» и «Профиль» заблокированы.
  */
 import { Outlet, NavLink } from 'react-router-dom';
+import { useApp } from '../store/app';
 
 const tabs = [
   {
@@ -28,6 +30,9 @@ const tabs = [
 ];
 
 export default function ClientLayout() {
+  const { client } = useApp();
+  const unregistered = !client?.name || !client?.phone;
+
   return (
     <div className="flex min-h-dvh flex-col">
       <main className="mx-auto w-full max-w-md flex-1 pb-32">
@@ -36,25 +41,40 @@ export default function ClientLayout() {
 
       <nav className="fixed inset-x-0 bottom-0 z-50 px-5 pb-[max(env(safe-area-inset-bottom),16px)]">
         <div className="mx-auto flex max-w-md rounded-[26px] border border-white/80 bg-white/85 p-1.5 shadow-dock backdrop-blur-xl">
-          {tabs.map((t) => (
-            <NavLink
-              key={t.to}
-              to={t.to}
-              end={t.to === '/'}
-              className={({ isActive }) =>
-                `flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] text-[11px] font-head font-semibold transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gradient-to-b from-softer to-soft/40 text-accent'
-                    : 'text-muted active:scale-95'
-                }`
-              }
-            >
-              <svg className="h-[22px] w-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
-                {t.icon}
-              </svg>
-              {t.label}
-            </NavLink>
-          ))}
+          {tabs.map((t) => {
+            const locked = unregistered && t.to !== '/';
+            return (
+              <NavLink
+                key={t.to}
+                to={t.to}
+                end={t.to === '/'}
+                aria-disabled={locked}
+                onClick={(e) => {
+                  if (locked) e.preventDefault();
+                }}
+                className={({ isActive }) =>
+                  `flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[20px] text-[11px] font-head font-semibold transition-all duration-200 ${
+                    locked
+                      ? 'text-muted/50'
+                      : isActive
+                        ? 'bg-gradient-to-b from-softer to-soft/40 text-accent'
+                        : 'text-muted active:scale-95'
+                  }`
+                }
+              >
+                {locked ? (
+                  <svg className="h-[22px] w-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                ) : (
+                  <svg className="h-[22px] w-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.7}>
+                    {t.icon}
+                  </svg>
+                )}
+                {t.label}
+              </NavLink>
+            );
+          })}
         </div>
       </nav>
     </div>

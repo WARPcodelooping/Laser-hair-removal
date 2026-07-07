@@ -14,7 +14,9 @@ const MONTHS = [
 ];
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-const iso = (d: Date) => d.toISOString().slice(0, 10);
+// Локальная дата YYYY-MM-DD (toISOString нельзя: UTC сдвигает день назад)
+const iso = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export default function TimeSelect() {
   const nav = useNavigate();
