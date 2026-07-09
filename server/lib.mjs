@@ -4,11 +4,19 @@
  */
 import { verifyInitData, hasBotToken } from './telegram.mjs';
 
-// Telegram ID администраторов (владелец/менеджеры) — задаются через env.
-export const ADMIN_IDS = (process.env.ADMIN_TELEGRAM_IDS || '')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+// Telegram ID администраторов: владелец — всегда, менеджеры добавляются
+// через env ADMIN_TELEGRAM_IDS (id через запятую).
+const DEFAULT_ADMIN_IDS = ['763224120'];
+
+export const ADMIN_IDS = [
+  ...new Set([
+    ...DEFAULT_ADMIN_IDS,
+    ...(process.env.ADMIN_TELEGRAM_IDS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+  ]),
+];
 
 export const isAdmin = (id) => ADMIN_IDS.includes(String(id));
 
