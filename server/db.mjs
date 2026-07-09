@@ -9,9 +9,18 @@ import { SERVICES, CATEGORIES } from '../shared/domain.js';
 
 const { Pool } = pg;
 
+// SSL: внутренняя сеть Railway (*.railway.internal) и localhost — без SSL,
+// внешние адреса (proxy.rlwy.net и т.п.) — SSL без проверки сертификата.
+const DB_URL = process.env.DATABASE_URL || '';
+const useSsl =
+  DB_URL &&
+  !DB_URL.includes('.railway.internal') &&
+  !DB_URL.includes('localhost') &&
+  !DB_URL.includes('127.0.0.1');
+
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL?.includes('railway') ? { rejectUnauthorized: false } : false,
+  connectionString: DB_URL,
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
 });
 
 const DOW_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
